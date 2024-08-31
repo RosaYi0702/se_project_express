@@ -48,7 +48,8 @@ const deleteClothingItems = (req, res) => {
         return res
           .status(ERROR_CODES.NOT_FOUND)
           .send({ message: ERROR_MESSAGES.NOT_FOUND });
-      } else if (err.name === "CastError") {
+      }
+      if (err.name === "CastError") {
         return res
           .status(ERROR_CODES.BAD_REQUEST)
           .send({ message: ERROR_MESSAGES.BAD_REQUEST });
@@ -69,14 +70,15 @@ const likeClothingItem = (req, res) => {
   )
     .orFail()
     .then((item) => {
-      return res.status(200).send({ message: "item liked successfully", item });
+      res.status(200).send({ message: "item liked successfully", item });
     })
     .catch((err) => {
       if (err.name === "DocumentNotFoundError") {
         return res
           .status(ERROR_CODES.NOT_FOUND)
           .send({ message: ERROR_MESSAGES.NOT_FOUND });
-      } else if (err.name === "CastError") {
+      }
+      if (err.name === "CastError") {
         return res
           .status(ERROR_CODES.BAD_REQUEST)
           .send({ message: ERROR_MESSAGES.BAD_REQUEST });
@@ -98,16 +100,15 @@ const unlikeClothingItem = (req, res) => {
   )
     .orFail()
     .then((item) => {
-      return res
-        .status(200)
-        .send({ message: "item unliked successfully", item });
+      res.status(200).send({ message: "item unliked successfully", item });
     })
     .catch((err) => {
       if (err.name === "DocumentNotFoundError") {
         return res
           .status(ERROR_CODES.NOT_FOUND)
           .send({ message: ERROR_MESSAGES.NOT_FOUND });
-      } else if (err.name === "CastError") {
+      }
+      if (err.name === "CastError") {
         return res
           .status(ERROR_CODES.BAD_REQUEST)
           .send({ message: ERROR_MESSAGES.BAD_REQUEST });
