@@ -31,17 +31,28 @@ const createClothingItems = (req, res) => {
 };
 const deleteClothingItems = (req, res) => {
   const { itemId } = req.params;
-  ClothingItems.findByIdAndDelete(itemId)
+  const currentUserId = req.user._id;
+
+  ClothingItems.findById(itemId)
     .orFail()
-    .then((deleteditem) => {
-      if (!deleteditem) {
+    .then((deletedItem) => {
+      if (!deletedItem) {
         return res
           .status(ERROR_CODES.NOT_FOUND)
           .send({ message: ERROR_MESSAGES.NOT_FOUND });
       }
-      return res
-        .status(200)
-        .send({ message: "item deleted successfully", deleteditem });
+
+      if (item.owner.toString() !== currentUserId.toString()) {
+        return res
+          .status(ERROR_CODES.FORBIDDEN)
+          .send({ message: ERROR_MESSAGES.FORBIDDEN });
+      }
+
+      return ClothingItems.findByIdAndDelete(itemId).then((deletedItem) => {
+        res
+          .status(200)
+          .send({ message: "item deleted successfully", deletedItem });
+      });
     })
     .catch((err) => {
       if (err.name === "DocumentNotFoundError") {
