@@ -78,8 +78,14 @@ const getUsers = (req, res) => {
 const createUser = async (req, res) => {
   const { name, avatar, email, password } = req.body;
 
+  if (!email || !password) {
+    return res
+      .status(ERROR_CODES.BAD_REQUEST)
+      .send({ message: ERROR_MESSAGES.BAD_REQUEST });
+  }
+
   try {
-    const existingUser = await UserSchema.findOne({ email });
+    const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res
         .status(ERROR_CODES.CONFLICT)
