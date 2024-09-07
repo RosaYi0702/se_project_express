@@ -75,27 +75,39 @@ const getUsers = (req, res) => {
     });
 };
 
-const createUser = (req, res) => {
+const createUser = async (req, res) => {
   const { name, avatar, email, password } = req.body;
 
-  User.create({ name, avatar, email, password: hashedPassword })
-    .then((user) => res.status(201).send(user))
-    .catch((err) => {
-      console.error(err);
-      if (err.name === "ValidationError") {
-        return res
-          .status(ERROR_CODES.BAD_REQUEST)
-          .send({ message: ERROR_MESSAGES.BAD_REQUEST });
-      }
-      if (err.code === 11000) {
-        return res
-          .status(ERROR_CODES.CONFLICT)
-          .send({ message: ERROR_MESSAGES.CONFLICT });
-      }
+  try {
+    const existingUser = await UserSchema.findOne({ email });
+    if (existingUser) {
       return res
-        .status(ERROR_CODES.SERVER_ERROR)
-        .send({ message: ERROR_MESSAGES.SERVER_ERROR });
+        .status(ERROR_CODES.CONFLICT)
+        .send({ message: ERROR_MESSAGES.CONFLICT });
+    }
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = await User.create({
+      name,
+      avatar,
+      email,
+      password: hashedPassword,
     });
+
+    return res.status(201).send(newUser);
+  } catch (err) {
+    console.error(err);
+    if (err.name === "ValidationError") {
+      return res
+        .status(ERROR_CODES.BAD_REQUEST)
+        .send({ message: ERROR_MESSAGES.BAD_REQUEST });
+    }
+    if (err.code === 11000) {
+      return res.status(11000).send({ message: ERROR_MESSAGES.CONFLICT });
+    }
+    return res
+      .status(ERROR_CODES.SERVER_ERROR)
+      .send({ message: ERROR_MESSAGES.SERVER_ERROR });
+  }
 };
 
 const getUser = (req, res) => {
