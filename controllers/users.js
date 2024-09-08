@@ -2,6 +2,7 @@ const User = require("../models/user");
 const bcrypt = require("bcryptjs");
 const { ERROR_CODES, ERROR_MESSAGES } = require("../utils/errors");
 const jwt = require("jsonwebtoken");
+const { JWT_SECRET } = require("../utils/config");
 
 const login = (req, res) => {
   const { email, password } = req.body;
@@ -99,7 +100,11 @@ const createUser = async (req, res) => {
       password: hashedPassword,
     });
 
-    return res.status(201).send(newUser);
+    return res.status(201).send({
+      name: newUser.name,
+      avatar: newUser.avatar,
+      email: newUser.email,
+    });
   } catch (err) {
     console.error(err);
     if (err.name === "ValidationError") {
