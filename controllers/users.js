@@ -1,34 +1,45 @@
-const User = require("../models/user");
 const bcrypt = require("bcryptjs");
-const { ERROR_CODES, ERROR_MESSAGES } = require("../utils/errors");
 const jwt = require("jsonwebtoken");
+const User = require("../models/user");
+const { ERROR_CODES, ERROR_MESSAGES } = require("../utils/errors");
 const { JWT_SECRET } = require("../utils/config");
 
 const login = (req, res) => {
   const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res
+      .status(ERROR_CODES.BAD_REQUEST)
+      .send({ message: ERROR_MESSAGES.BAD_REQUEST });
+  }
 
   return User.findUserByCredentials(email, password)
     .then((user) => {
       const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
         expiresIn: "7d",
       });
-      return token;
+      return res.send({ token });
     })
     .catch((err) => {
-      res
-        .status(ERROR_CODES.BAD_REQUEST)
-        .send({ message: ERROR_MESSAGES.BAD_REQUEST });
+      if (err.message === "Incorrect email or password") {
+        return res
+          .status(ERROR_CODES.BAD_REQUEST)
+          .send(ERROR_MESSAGES.BAD_REQUEST);
+      }
+      return res
+        .status(ERROR_CODES.SERVER_ERROR)
+        .send({ message: ERROR_MESSAGES.SERVER_ERROR });
     });
 };
 
 const getCurrentUser = (req, res) => {
   const userId = req.user._id;
-  User.findById({ userId })
+  User.findById(userId)
     .then((user) => {
       if (!user) {
         return res.status(ERROR_CODES.NOT_FOUND).send(ERROR_MESSAGES.NOT_FOUND);
       }
-      res.send(user);
+      return res.send(user);
     })
     .catch((err) => {
       console.error(err);
@@ -50,7 +61,7 @@ const updateProfile = async (req, res) => {
         return res.status(ERROR_CODES.NOT_FOUND).send(ERROR_MESSAGES.NOT_FOUND);
       }
 
-      res.send(updatedUser);
+      return res.send(updatedUser);
     })
     .catch((err) => {
       if (err.name === "ValidationError") {
@@ -59,17 +70,6 @@ const updateProfile = async (req, res) => {
           .send({ message: ERROR_MESSAGES.BAD_REQUEST });
       }
 
-      return res
-        .status(ERROR_CODES.SERVER_ERROR)
-        .send({ message: ERROR_MESSAGES.SERVER_ERROR });
-    });
-};
-
-const getUsers = (req, res) => {
-  User.find({})
-    .then((users) => res.send(users))
-    .catch((err) => {
-      console.error(err);
       return res
         .status(ERROR_CODES.SERVER_ERROR)
         .send({ message: ERROR_MESSAGES.SERVER_ERROR });
@@ -86,12 +86,12 @@ const createUser = async (req, res) => {
   }
 
   try {
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res
-        .status(ERROR_CODES.CONFLICT)
-        .send({ message: ERROR_MESSAGES.CONFLICT });
-    }
+    // const existingUser = await User.findOne({ email });
+    // if (existingUser) {
+    //   return res
+    //     .status(ERROR_CODES.CONFLICT)
+    //     .send({ message: ERROR_MESSAGES.CONFLICT });
+    // }
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = await User.create({
       name,
@@ -113,36 +113,14 @@ const createUser = async (req, res) => {
         .send({ message: ERROR_MESSAGES.BAD_REQUEST });
     }
     if (err.code === 11000) {
-      return res.status(11000).send({ message: ERROR_MESSAGES.CONFLICT });
+      return res
+        .status(ERROR_MESSAGES.CONFLICT)
+        .send({ message: ERROR_MESSAGES.CONFLICT });
     }
     return res
       .status(ERROR_CODES.SERVER_ERROR)
       .send({ message: ERROR_MESSAGES.SERVER_ERROR });
   }
-};
-
-const getUser = (req, res) => {
-  const { userId } = req.params;
-  User.findById(userId)
-    .orFail()
-    .then((user) => res.status(200).send(user))
-
-    .catch((err) => {
-      console.error(err);
-      if (err.name === "DocumentNotFoundError") {
-        return res
-          .status(ERROR_CODES.NOT_FOUND)
-          .send({ message: ERROR_MESSAGES.NOT_FOUND });
-      }
-      if (err.name === "CastError") {
-        return res
-          .status(ERROR_CODES.BAD_REQUEST)
-          .send({ message: ERROR_MESSAGES.BAD_REQUEST });
-      }
-      return res
-        .status(ERROR_CODES.SERVER_ERROR)
-        .send({ message: ERROR_MESSAGES.SERVER_ERROR });
-    });
 };
 
 module.exports = { getCurrentUser, updateProfile, login, createUser };
