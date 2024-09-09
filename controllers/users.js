@@ -23,8 +23,8 @@ const login = (req, res) => {
     .catch((err) => {
       if (err.message === "Incorrect email or password") {
         return res
-          .status(ERROR_CODES.BAD_REQUEST)
-          .send(ERROR_MESSAGES.BAD_REQUEST);
+          .status(ERROR_CODES.UNAUTHORIZED)
+          .send({ message: ERROR_MESSAGES.UNAUTHORIZED });
       }
       return res
         .status(ERROR_CODES.SERVER_ERROR)
@@ -86,12 +86,6 @@ const createUser = async (req, res) => {
   }
 
   try {
-    // const existingUser = await User.findOne({ email });
-    // if (existingUser) {
-    //   return res
-    //     .status(ERROR_CODES.CONFLICT)
-    //     .send({ message: ERROR_MESSAGES.CONFLICT });
-    // }
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = await User.create({
       name,
@@ -114,7 +108,7 @@ const createUser = async (req, res) => {
     }
     if (err.code === 11000) {
       return res
-        .status(ERROR_MESSAGES.CONFLICT)
+        .status(ERROR_CODES.CONFLICT)
         .send({ message: ERROR_MESSAGES.CONFLICT });
     }
     return res
