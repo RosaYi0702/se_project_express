@@ -9,6 +9,12 @@ const { ERROR_CODES, ERROR_MESSAGES } = require("../utils/errors");
 router.post("/signup", async (req, res) => {
   const { name, avatar, email, password } = req.body;
   try {
+
+const existingUser = await User.findOne({email});
+if(existingUser){
+  return res.status(ERROR_CODES.CONFLICT).send({message: "Email already exists"})
+}
+
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = await User.create({
       name,
