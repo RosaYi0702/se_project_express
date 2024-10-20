@@ -1,3 +1,3 @@
 module.exports = {
-  JWT_SECRET: "super-strong-secret",
+  JWT_SECRET: process.env.JWT_SECRET || "super-strong-secret",
 };
