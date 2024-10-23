@@ -6,5 +6,3 @@ module.exports = rateLimit({
   standardHeaders: "draft-7",
   legacyHeaders: false,
 });
-
-export default rateLimit;
