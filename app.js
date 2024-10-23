@@ -1,7 +1,7 @@
 const cors = require("cors");
 const express = require("express");
 const mongoose = require("mongoose");
-const rateLimit = require("express-rate-limit");
+const limiter = require("./middlewares/limitert");
 const helmet = require("helmet");
 require("dotenv").config();
 const { errors } = require("celebrate");
@@ -18,13 +18,6 @@ mongoose
     console.log("Connect to DB");
   })
   .catch(console.error);
-
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  limit: 100,
-  standardHeaders: "draft-7",
-  legacyHeaders: false,
-});
 
 app.use(requestLogger);
 app.use(cors());
