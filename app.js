@@ -1,7 +1,7 @@
 const cors = require("cors");
 const express = require("express");
 const mongoose = require("mongoose");
-const limiter = require("./middlewares/limitert");
+const rateLimit = require("./middlewares/limitert");
 const helmet = require("helmet");
 require("dotenv").config();
 const { errors } = require("celebrate");
@@ -22,7 +22,7 @@ mongoose
 app.use(requestLogger);
 app.use(cors());
 app.use(express.json());
-app.use(limiter);
+app.use(rateLimit);
 app.use(helmet());
 app.get("/crash-test", () => {
   setTimeout(() => {
