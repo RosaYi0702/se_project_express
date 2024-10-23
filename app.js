@@ -1,10 +1,10 @@
 const cors = require("cors");
 const express = require("express");
 const mongoose = require("mongoose");
-const limiter = require("./middlewares/limitert");
 const helmet = require("helmet");
 require("dotenv").config();
 const { errors } = require("celebrate");
+const limiter = require("./middlewares/limiter");
 const mainRouter = require("./routes/index");
 const errorHandler = require("./middlewares/error-handler");
 const { requestLogger, errorLogger } = require("./middlewares/logger");
