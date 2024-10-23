@@ -1,6 +1,4 @@
 const ClothingItems = require("../models/clothingItem");
-const { ERROR_CODES, ERROR_MESSAGES } = require("../utils/errors");
-const UnauthorizedError = require("./errors/unauthorized-err");
 const BadRequestError = require("./errors/bad-request-err");
 const NotFoundError = require("./errors/not-found-err");
 const ForbiddenError = require("./errors/forbidden-err");
@@ -18,7 +16,7 @@ const createClothingItems = (req, res, next) => {
     .then((item) => res.status(201).send({ item }))
     .catch((err) => {
       if (err.name === "ValidationError") {
-        throw next(new BadRequestError("Validation Error"));
+        return next(new BadRequestError("Validation Error"));
       }
       return next(err);
     });
@@ -31,7 +29,7 @@ const deleteClothingItems = (req, res, next) => {
     .orFail()
     .then((item) => {
       if (item.owner.toString() !== currentUserId.toString()) {
-        throw next(new ForbiddenError("Forbidden - user not allowed"));
+        return next(new ForbiddenError("Forbidden - user not allowed"));
       }
 
       return ClothingItems.findByIdAndDelete(itemId).then((deletedItem) => {
@@ -42,10 +40,12 @@ const deleteClothingItems = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === "DocumentNotFoundError") {
-        throw new NotFoundError("Document is not found");
+        return next(new NotFoundError("Document is not found"));
       }
       if (err.name === "CastError") {
-        throw new BadRequestError("The id string is in an invalid format");
+        return next(
+          new BadRequestError("The id string is in an invalid format")
+        );
       }
       return next(err);
     });
@@ -65,10 +65,12 @@ const likeClothingItem = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === "DocumentNotFoundError") {
-        throw new NotFoundError("Document is not found");
+        return next(new NotFoundError("Document is not found"));
       }
       if (err.name === "CastError") {
-        throw new BadRequestError("The id string is in an invalid format");
+        return next(
+          new BadRequestError("The id string is in an invalid format")
+        );
       }
       return next(err);
     });
@@ -89,10 +91,10 @@ const unlikeClothingItem = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === "DocumentNotFoundError") {
-        throw new NotFoundError("Document is not found");
+        next(new NotFoundError("Document is not found"));
       }
       if (err.name === "CastError") {
-        throw new BadRequestError("The id string is in an invalid format");
+        next(new BadRequestError("The id string is in an invalid format"));
       }
       return next(err);
     });

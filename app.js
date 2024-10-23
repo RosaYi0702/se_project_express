@@ -1,6 +1,8 @@
 const cors = require("cors");
 const express = require("express");
 const mongoose = require("mongoose");
+const rateLimit = require("express-rate-limit");
+const helmet = require("helmet");
 require("dotenv").config();
 const { errors } = require("celebrate");
 const mainRouter = require("./routes/index");
@@ -17,9 +19,18 @@ mongoose
   })
   .catch(console.error);
 
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 100,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+});
+
 app.use(requestLogger);
 app.use(cors());
 app.use(express.json());
+app.use(limiter);
+app.use(helmet());
 app.get("/crash-test", () => {
   setTimeout(() => {
     throw new Error("Server will crash now");

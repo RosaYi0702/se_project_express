@@ -1,7 +1,6 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
-const { ERROR_CODES, ERROR_MESSAGES } = require("../utils/errors");
 const { JWT_SECRET } = require("../utils/config");
 const UnauthorizedError = require("./errors/unauthorized-err");
 const BadRequestError = require("./errors/bad-request-err");
@@ -35,7 +34,7 @@ const getCurrentUser = (req, res, next) => {
   User.findById(userId)
     .then((user) => {
       if (!user) {
-        throw new NotFoundError("No user with matching ID found");
+        return next(new NotFoundError("No user with matching ID found"));
       }
       return res.send(user);
     })
@@ -51,7 +50,7 @@ const updateProfile = async (req, res, next) => {
   )
     .then((updatedUser) => {
       if (!updatedUser) {
-        throw new NotFoundError("No user with matching ID found");
+        return next(new NotFoundError("No user with matching ID found"));
       }
 
       return res.send(updatedUser);
@@ -69,7 +68,7 @@ const createUser = async (req, res, next) => {
   const { name, avatar, email, password } = req.body;
 
   if (!email || !password) {
-    throw new BadRequestError("Bad Request - email or password");
+    return next(new BadRequestError("Bad Request - email or password"));
   }
 
   try {
